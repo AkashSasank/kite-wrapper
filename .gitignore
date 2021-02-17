@@ -1,0 +1,8 @@
+*.csv
+!.gitignore
+*.json
+test.py
+*.exe
+*.env
+.idea/
+__pycache__/
