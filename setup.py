@@ -12,5 +12,9 @@ setup(name='kite-wrapper',
       author_email='akashsasank369@gmail.com',
       license='MIT',
       packages=setuptools.find_packages(),
-      zip_safe=False,
+      classifiers=[
+            "Programming Language :: Python :: 3",
+            "License :: OSI Approved :: MIT License",
+            "Operating System :: OS Independent",
+      ],
       python_requires='>=3.6',)
