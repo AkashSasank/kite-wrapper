@@ -4,8 +4,13 @@ import requests
 from selenium import webdriver
 import json
 import datetime
+import numpy as np
+
+from .utils import TechnicalAnalysis
 
 logging.basicConfig(level=logging.DEBUG)
+
+analysis = TechnicalAnalysis()
 
 
 class Kite:
@@ -70,7 +75,7 @@ class Kite:
     def get_historic_data(self, instrument_token, interval='day'):
         """
         Gets historic data till today
-        :param instrument_token: nstrument identifier (retrieved from the instruments()) call.
+        :param instrument_token: instrument identifier (retrieved from the instruments()) call.
         :param interval: candle interval (hour, minute, day, 5 minute etc.).
         :return:
         """
@@ -97,6 +102,28 @@ class Kite:
         data = self.session.historical_data(instrument_token, interval=interval, from_date=from_date,
                                             to_date=to_date)
         return data
+
+    def get_latest_technical_indicators(self, *args, instrument_token, interval='minute', normalize=True,
+                                        coeff=0.001415926535):
+        """
+        Fetch latest indicator values
+        :param args: indicator strings ==> https://pypi.org/project/stockstats/
+        :param instrument_token: instrument identifier (retrieved from the instruments()) call.
+        :param interval: candle interval (hour, minute, day, 5 minute etc.).
+        :param normalize: Boolean - data should be normalised or not
+        :param coeff :Normalisation coefficient for sigmoid.
+        :return: Dict of latest indicator values.
+        """
+        data = self.get_historic_data(instrument_token, interval)
+        indicators = analysis.get_indicators(*args, data=data, normalize=False)
+        indicator_values = {}
+        for indicator, value in indicators.items():
+
+            v = value[-1]
+            if normalize:
+                v = 1 / (1 + np.exp(-coeff * v))
+            indicator_values[indicator] = v
+        return indicator_values
 
     @property
     def valid_intervals(self):
