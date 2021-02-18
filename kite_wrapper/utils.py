@@ -37,7 +37,7 @@ def to_csv(filename, input_list: list):
 
 
 class TechnicalAnalysis:
-    def __init__(self, data, name: str):
+    def __init__(self, data=None, name: str = None):
         self.data = pd.DataFrame(data)
         self.name = name
 
@@ -149,8 +149,8 @@ class TechnicalAnalysis:
                 pass
         return indicators
 
-    def generate_data_set(self):
-        swing = self.get_swing_data(stride=1)
+    def generate_data_set(self, type='close'):
+        swing = self.get_swing_data(stride=1, type=type)
 
         indicators = self.get_indicators('close_10_sma', 'close_20_sma',
                                          'close_50_sma',
