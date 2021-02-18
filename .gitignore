@@ -6,3 +6,4 @@ test.py
 *.env
 .idea/
 __pycache__/
+*.egg-info/
