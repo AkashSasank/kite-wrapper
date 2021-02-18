@@ -4,5 +4,6 @@
 * Helper for Algo-Trading using Kite API.
 
 ## Installation
-
+```
 $ pip install git+https://github.com/AkashSasank/kite-wrapper
+```
