@@ -1,10 +1,14 @@
 import logging
 from kiteconnect import KiteConnect
 import requests
-from selenium import webdriver
 import json
 import datetime
 import numpy as np
+from selenium import webdriver
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 
 from .utils import TechnicalAnalysis
 
@@ -25,7 +29,7 @@ class Kite:
         if self.access_token:
             self.session.set_access_token(self.access_token)
 
-    def connect(self):
+    def connect(self, auto=False, user_id=None, password=None, pin=None):
         kite = self.session
         url = kite.login_url()
         r = requests.get(url)
@@ -37,15 +41,31 @@ class Kite:
             """)
             raise e
         driver.get(r.url)
+        if auto:
+            WebDriverWait(driver, 10).until(
+                    EC.presence_of_element_located((By.ID, "userid"))
+            )
+            uid = driver.find_element_by_id('userid')
+            uid.send_keys(user_id)
+            pwd = driver.find_element_by_id('password')
+            pwd.send_keys(password)
+            pwd.send_keys(Keys.RETURN)
+            WebDriverWait(driver, 10).until(
+                    EC.presence_of_element_located((By.ID, "pin"))
+            )
+            code = driver.find_element_by_id('pin')
+            code.send_keys(pin)
+            code.send_keys(Keys.RETURN)
         url = driver.current_url
         while self.redirect_url not in url:
             url = driver.current_url
         request_token = url.split('request_token=')[1].split('&')[0]
-        driver.close()
+        driver.quit()
         data = kite.generate_session(request_token, api_secret=self.api_secret)
         access_token = data["access_token"]
         self.access_token = access_token
         self.request_token = request_token
+
         self.save_secrets()
         self.session.set_access_token(access_token)
 
