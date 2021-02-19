@@ -1,6 +1,5 @@
 import logging
 from kiteconnect import KiteConnect
-import kiteconnect.exceptions as exceptions
 import requests
 from selenium import webdriver
 import json
@@ -65,7 +64,7 @@ class Kite:
         try:
             self.session.profile()
             return True
-        except exceptions.TokenException as e:
+        except Exception as e:
             return False
 
     def __set_secrets(self):
