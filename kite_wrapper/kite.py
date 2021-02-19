@@ -1,5 +1,6 @@
 import logging
 from kiteconnect import KiteConnect
+import kiteconnect.exceptions as exceptions
 import requests
 from selenium import webdriver
 import json
@@ -60,6 +61,13 @@ class Kite:
         with open('secret.json', 'w') as fp:
             json.dump(user_data, fp)
 
+    def validate_token(self):
+        try:
+            self.session.profile()
+            return True
+        except exceptions.TokenException as e:
+            return False
+
     def __set_secrets(self):
         try:
             with open('secret.json', 'r') as fp:
@@ -71,6 +79,15 @@ class Kite:
             self.request_token = data['request_token']
         except Exception as e:
             pass
+
+    def get_secrets(self):
+        secrets = {
+            "api_key": self.api_key,
+            "api_secret": self.api_secret,
+            "redirect_url": self.redirect_url,
+            "access_token": self.access_token
+        }
+        return secrets
 
     def get_historic_data(self, instrument_token, interval='day'):
         """
