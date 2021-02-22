@@ -178,19 +178,22 @@ class Kite:
         sma60 = indicators['close_60_sma']
         pdi = indicators['pdi']
         mdi = indicators['mdi']
-        ltp = self.session.ltp([instrument_token]).get(str(instrument_token))['last_price']
         trend = 'None'
-        if ltp > sma30 > sma60:
-            trend = 'Long'
-        elif ltp < sma30 < sma60:
-            trend = 'Short'
-        elif sma30 <= ltp <= sma60 or sma30 >= ltp >= sma60:
-            if pdi > mdi:
+        try:
+            ltp = self.session.ltp([instrument_token]).get(str(instrument_token))['last_price']
+            if ltp > sma30 > sma60:
                 trend = 'Long'
-            if pdi <= mdi:
+            elif ltp < sma30 < sma60:
                 trend = 'Short'
-        else:
-            trend = 'None'
+            elif sma30 <= ltp <= sma60 or sma30 >= ltp >= sma60:
+                if pdi > mdi:
+                    trend = 'Long'
+                if pdi <= mdi:
+                    trend = 'Short'
+            else:
+                trend = 'None'
+        except Exception as e:
+            pass
         return trend
 
     @property
