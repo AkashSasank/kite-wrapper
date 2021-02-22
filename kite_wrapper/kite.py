@@ -161,6 +161,15 @@ class Kite:
             indicator_values[indicator] = v
         return indicator_values
 
+    def get_trading_symbol(self, instrument_token):
+        return [i['tradingsymbol'] for i in self.instruments if i['instrument_token'] == instrument_token][0]
+
+    def get_ltp(self, instrument_token):
+        return {
+            'trading_symbol': self.get_trading_symbol(instrument_token)
+            'ltp': self.session.ltp([instrument_token])
+        }
+
     @property
     def valid_intervals(self):
         return ['minute', '2minute', '3minute', '4minute', '5minute', '10minute', '15minute', '30minute',
