@@ -158,5 +158,5 @@ class TechnicalAnalysis:
                                          'boll_ub', 'boll_lb', 'rsi_6', 'rsi_12', 'rsi_20', 'rsi_50', 'pdi', 'mdi',
                                          'adx')
         indicators['actions'] = swing['actions']
-        data_set = pd.DataFrame(data=indicators)
+        data_set = pd.DataFrame(data=indicators).iloc[1:]
         data_set.to_csv(self.name + '.csv', index=False)
