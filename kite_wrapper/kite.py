@@ -171,6 +171,7 @@ class Kite:
         :param interval:
         :return: trend
         """
+        # TODO: Improve trend prediction
         indicators = self.get_latest_technical_indicators('close_60_sma', 'close_30_sma', 'pdi', 'mdi',
                                                           instrument_token=instrument_token, interval=interval,
                                                           normalize=False)
@@ -181,9 +182,9 @@ class Kite:
         trend = 'None'
         try:
             ltp = self.session.ltp([instrument_token]).get(str(instrument_token))['last_price']
-            if ltp > sma30 > sma60:
+            if ltp > sma30 and ltp > sma60:
                 trend = 'Long'
-            elif ltp < sma30 < sma60:
+            elif ltp < sma30 and ltp < sma60:
                 trend = 'Short'
             elif sma30 <= ltp <= sma60 or sma30 >= ltp >= sma60:
                 if pdi > mdi:
