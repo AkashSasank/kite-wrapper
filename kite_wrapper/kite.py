@@ -166,7 +166,7 @@ class Kite:
 
     def get_ltp(self, instrument_token):
         return {
-            'trading_symbol': self.get_trading_symbol(instrument_token)
+            'trading_symbol': self.get_trading_symbol(instrument_token),
             'ltp': self.session.ltp([instrument_token])
         }
 
