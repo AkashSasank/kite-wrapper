@@ -164,12 +164,34 @@ class Kite:
     def get_trading_symbol(self, instrument_token):
         return [i['tradingsymbol'] for i in self.instruments if i['instrument_token'] == instrument_token][0]
 
-    def get_ltp(self, instrument_token):
-        data = {
-            'trading_symbol': self.get_trading_symbol(instrument_token),
-        }
-        data.update(self.session.ltp([instrument_token]))
-        return data
+    def get_trend(self, instrument_token, interval='minute'):
+        """
+        Find market trend of an instrument in a given time frame
+        :param instrument_token:
+        :param interval:
+        :return: trend
+        """
+        indicators = self.get_latest_technical_indicators('close_60_sma', 'close_30_sma', 'pdi', 'mdi',
+                                                          instrument_token=instrument_token, interval=interval,
+                                                          normalize=False)
+        sma30 = indicators['close_30_sma']
+        sma60 = indicators['close_60_sma']
+        pdi = indicators['pdi']
+        mdi = indicators['mdi']
+        ltp = self.session.ltp([instrument_token]).get(str(instrument_token))['last_price']
+        trend = 'None'
+        if ltp > sma30 > sma60:
+            trend = 'Long'
+        elif ltp < sma30 < sma60:
+            trend = 'Short'
+        elif sma30 <= ltp <= sma60 or sma30 >= ltp >= sma60:
+            if pdi > mdi:
+                trend = 'Long'
+            if pdi <= mdi:
+                trend = 'Short'
+        else:
+            trend = 'None'
+        return trend
 
     @property
     def valid_intervals(self):
