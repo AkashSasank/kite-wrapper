@@ -165,10 +165,11 @@ class Kite:
         return [i['tradingsymbol'] for i in self.instruments if i['instrument_token'] == instrument_token][0]
 
     def get_ltp(self, instrument_token):
-        return {
+        data = {
             'trading_symbol': self.get_trading_symbol(instrument_token),
-            'ltp': self.session.ltp([instrument_token])
         }
+        data.update(self.session.ltp([instrument_token]))
+        return data
 
     @property
     def valid_intervals(self):
