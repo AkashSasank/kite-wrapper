@@ -73,12 +73,13 @@ class TechnicalAnalysis:
                 trend.append('-')
         return trend
 
-    def get_swing_data(self, stride, type='close', data=None):
+    def get_swing_data(self, stride, type='close', data=None, ramp=False):
         """
         Get actions and swing data for given data
         :param data: Price data
         :param stride: Neighbour distance to consider for determining trend
         :param type: Open, high, low or close.
+        :param ramp: Consider ascend and descend separately
         :return: Dict {actions, swing high, swing low}
         """
         if data:
@@ -105,7 +106,8 @@ class TechnicalAnalysis:
         """
         swing_high_indices = [hi for hi, value in enumerate(strong_values) if value == 'SH']
         swing_low_indices = [li for li, value in enumerate(strong_values) if value == 'SL']
-
+        ascend_indices = [li for li, value in enumerate(strong_values) if value == 'A']
+        descend_indices = [li for li, value in enumerate(strong_values) if value == 'D']
         """
         Assign actions corresponding to price.
         """
@@ -116,12 +118,21 @@ class TechnicalAnalysis:
             elif value == 'SL':
                 actions.append('Buy')
             else:
-                actions.append('Hold')
+                if ramp:
+                    if value == 'A':
+                        actions.append('Hold-Up')
+                    else:
+                        actions.append('Hold-Down')
+
+                else:
+                    actions.append('Hold')
 
         return {
             'actions': actions,
             'swing_high_indices': swing_high_indices,
-            'swing_low_indices': swing_low_indices
+            'swing_low_indices': swing_low_indices,
+            'ascend_indices': ascend_indices,
+            'descend_indices': descend_indices
         }
 
     def get_indicators(self, *args, data=None, normalize=True, coeff=0.001415926535):
