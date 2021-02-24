@@ -160,8 +160,8 @@ class TechnicalAnalysis:
                 pass
         return indicators
 
-    def generate_data_set(self, type='close'):
-        swing = self.get_swing_data(stride=1, type=type)
+    def generate_data_set(self, type='close', ramp=False):
+        swing = self.get_swing_data(stride=1, type=type, ramp=ramp)
 
         indicators = self.get_indicators('close_10_sma', 'close_20_sma',
                                          'close_50_sma',
