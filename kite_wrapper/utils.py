@@ -61,9 +61,9 @@ class TechnicalAnalysis:
             prev_value = data[index - stride]
             next_value = data[index + stride]
 
-            if prev_value < value < next_value:
+            if prev_value <= value < next_value or prev_value < value <= next_value:
                 trend.append('A')
-            elif prev_value > value > next_value:
+            elif prev_value >= value > next_value or prev_value > value >= next_value:
                 trend.append('D')
             elif prev_value < value > next_value:
                 trend.append('SH')
