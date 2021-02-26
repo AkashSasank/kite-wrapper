@@ -202,5 +202,5 @@ class TechnicalAnalysis:
                                          'kdjj', 'wr_6', 'wr_10', 'dma', 'vr', normalize=normalize, coeff=coeff)
 
         indicators['actions'] = swing['actions']
-        data_set = pd.DataFrame(data=indicators).iloc[1:]
+        data_set = pd.DataFrame(data=indicators).iloc[5:]
         data_set.to_csv(self.name + '.csv', index=False)
