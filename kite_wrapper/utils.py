@@ -45,6 +45,7 @@ class TechnicalAnalysis:
     Class to perform technical analysis on input stock data.
     The input data should have columns date, open, high, low, close, volume etc.
     """
+
     def __init__(self, data=None, name: str = None):
         self.data = pd.DataFrame(data)
         self.name = name
@@ -192,11 +193,14 @@ class TechnicalAnalysis:
         """
         swing = self.get_swing_data(stride=1, type=type, ramp=ramp, swing=swing)
 
-        indicators = self.get_indicators('close_10_sma', 'close_20_sma',
-                                         'close_50_sma',
-                                         'close_100_sma', 'close_200_sma', 'volume_delta',
-                                         'boll_ub', 'boll_lb', 'rsi_6', 'rsi_12', 'rsi_20', 'rsi_50', 'pdi', 'mdi',
-                                         'adx', normalize=normalize, coeff=coeff)
+        # indicators = self.get_indicators('close_10_sma', 'close_20_sma',
+        #                                  'close_50_sma',
+        #                                  'close_100_sma', 'close_200_sma', 'volume_delta',
+        #                                  'boll_ub', 'boll_lb', 'rsi_6', 'rsi_12', 'rsi_20', 'rsi_50', 'pdi', 'mdi',
+        #                                  'adx', normalize=normalize, coeff=coeff)
+        indicators = self.get_indicators('rsi_6', 'rsi_10', 'pdi', 'mdi', 'adx', 'kdjk', 'kdjd',
+                                         'kdjj', 'wr_6', 'wr_10', 'dma', 'vr', normalize=normalize, coeff=coeff)
+
         indicators['actions'] = swing['actions']
         data_set = pd.DataFrame(data=indicators).iloc[1:]
         data_set.to_csv(self.name + '.csv', index=False)
