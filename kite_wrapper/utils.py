@@ -6,6 +6,10 @@ import pandas as pd
 
 
 def load_secrets():
+    """
+    Load data from secret.json as JSON
+    :return: Dict.
+    """
     try:
         with open('secret.json', 'r') as fp:
             data = json.load(fp)
@@ -37,6 +41,11 @@ def to_csv(filename, input_list: list):
 
 
 class TechnicalAnalysis:
+    """
+    Class to perform technical analysis on input stock data.
+    The input data should have columns date, open, high, low, close, volume etc.
+    """
+
     def __init__(self, data=None, name: str = None):
         self.data = pd.DataFrame(data)
         self.name = name
@@ -73,13 +82,15 @@ class TechnicalAnalysis:
                 trend.append('-')
         return trend
 
-    def get_swing_data(self, stride, type='close', data=None, ramp=False):
+    def get_swing_data(self, stride, type='close', data=None, ramp=False, swing=True):
         """
         Get actions and swing data for given data
         :param data: Price data
         :param stride: Neighbour distance to consider for determining trend
         :param type: Open, high, low or close.
         :param ramp: Consider ascend and descend separately
+        :param swing: If True, considers swing high and low and movement as separate, else Swing low and ascending in
+        one and swing high and descending in another
         :return: Dict {actions, swing high, swing low}
         """
         if data:
@@ -112,20 +123,29 @@ class TechnicalAnalysis:
         Assign actions corresponding to price.
         """
         actions = []
-        for value in strong_values:
-            if value == 'SH':
-                actions.append('Sell')
-            elif value == 'SL':
-                actions.append('Buy')
-            else:
-                if ramp:
-                    if value == 'A':
-                        actions.append('Hold-Up')
-                    else:
-                        actions.append('Hold-Down')
-
+        if swing:
+            for value in strong_values:
+                if value == 'SH':
+                    actions.append('Sell')
+                elif value == 'SL':
+                    actions.append('Buy')
                 else:
-                    actions.append('Hold')
+                    if ramp:
+                        if value == 'A':
+                            actions.append('Hold-Up')
+                        else:
+                            actions.append('Hold-Down')
+
+                    else:
+                        actions.append('Hold')
+        if not swing:
+            for value in strong_values:
+                if value == 'SH' or value == 'D':
+                    actions.append('Sell')
+                elif value == 'SL' or value == 'A':
+                    actions.append('Buy')
+                else:
+                    actions.append('Buy')
 
         return {
             'actions': actions,
@@ -135,7 +155,7 @@ class TechnicalAnalysis:
             'descend_indices': descend_indices
         }
 
-    def get_indicators(self, *args, data=None, normalize=True, coeff=0.001415926535):
+    def get_indicators(self, *args, data=None, normalize=False, coeff=0.001415926535):
         """
         Get set of indicators on input data
         :param data: Input data (any of open, high, low, close)
@@ -160,14 +180,27 @@ class TechnicalAnalysis:
                 pass
         return indicators
 
-    def generate_data_set(self, type='close', ramp=False):
-        swing = self.get_swing_data(stride=1, type=type, ramp=ramp)
+    def generate_data_set(self, type='close', ramp=False, swing=True, normalize=False, coeff=0.001415926535):
+        """
+        Generate dataset from given data and save as csv file.
+        :param type: Column to consider. open, high, low or close.
+        :param ramp:Boolean. Consider ascend and descend separately
+        :param swing:Boolean. If True, considers swing high and low and movement as separate, else Swing low and ascending in
+        one and swing high and descending in another
+        :param normalize: Boolean. Normalize data or not.
+        :param coeff: Coefficient for normalization.
+        :return:
+        """
+        swing = self.get_swing_data(stride=1, type=type, ramp=ramp, swing=swing)
 
-        indicators = self.get_indicators('close_10_sma', 'close_20_sma',
-                                         'close_50_sma',
-                                         'close_100_sma', 'close_200_sma', 'volume_delta',
-                                         'boll_ub', 'boll_lb', 'rsi_6', 'rsi_12', 'rsi_20', 'rsi_50', 'pdi', 'mdi',
-                                         'adx')
+        # indicators = self.get_indicators('close_10_sma', 'close_20_sma',
+        #                                  'close_50_sma',
+        #                                  'close_100_sma', 'close_200_sma', 'volume_delta',
+        #                                  'boll_ub', 'boll_lb', 'rsi_6', 'rsi_12', 'rsi_20', 'rsi_50', 'pdi', 'mdi',
+        #                                  'adx', normalize=normalize, coeff=coeff)
+        indicators = self.get_indicators('rsi_6', 'rsi_10', 'pdi', 'mdi', 'adx', 'kdjk', 'kdjd',
+                                         'kdjj', 'wr_6', 'wr_10', 'dma', 'vr', normalize=normalize, coeff=coeff)
+
         indicators['actions'] = swing['actions']
         data_set = pd.DataFrame(data=indicators).iloc[1:]
         data_set.to_csv(self.name + '.csv', index=False)

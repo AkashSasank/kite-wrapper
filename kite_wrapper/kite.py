@@ -18,6 +18,9 @@ analysis = TechnicalAnalysis()
 
 
 class Kite:
+    """
+    A wrapper class for kiteconnect API.
+    """
     def __init__(self, api_key, api_secret, redirect_url):
         self.api_key = api_key
         self.api_secret = api_secret
@@ -30,6 +33,14 @@ class Kite:
             self.session.set_access_token(self.access_token)
 
     def connect(self, auto=False, user_id=None, password=None, pin=None):
+        """
+        Authentication. Get request token.
+        :param auto: Boolean. Automate authentication.
+        :param user_id: Kite User ID.
+        :param password: Kite password.
+        :param pin: Kite pin.
+        :return:
+        """
         kite = self.session
         url = kite.login_url()
         r = requests.get(url)
@@ -70,6 +81,10 @@ class Kite:
         self.session.set_access_token(access_token)
 
     def save_secrets(self):
+        """
+        Save credentials in secret.json file.
+        :return:
+        """
         user_data = {
             "api_key": self.api_key,
             "api_secret": self.api_secret,
@@ -81,6 +96,10 @@ class Kite:
             json.dump(user_data, fp)
 
     def validate_token(self):
+        """
+        Validate request token.
+        :return: Boolean.
+        """
         try:
             self.session.profile()
             return True
@@ -88,6 +107,10 @@ class Kite:
             return False
 
     def __set_secrets(self):
+        """
+        Initialise secret credentials from secret.json file.
+        :return:
+        """
         try:
             with open('secret.json', 'r') as fp:
                 data = json.load(fp)
@@ -100,6 +123,10 @@ class Kite:
             pass
 
     def get_secrets(self):
+        """
+        Get the secrete credentials initialised in class.
+        :return: Dict.
+        """
         secrets = {
             "api_key": self.api_key,
             "api_secret": self.api_secret,
@@ -162,6 +189,11 @@ class Kite:
         return indicator_values
 
     def get_trading_symbol(self, instrument_token):
+        """
+        Get trading symbol for a given instrument token.
+        :param instrument_token:
+        :return: trading_symbol
+        """
         return [i['tradingsymbol'] for i in self.instruments if i['instrument_token'] == instrument_token][0]
 
     def get_trend(self, instrument_token, interval='minute'):
