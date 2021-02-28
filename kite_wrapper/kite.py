@@ -21,6 +21,7 @@ class Kite:
     """
     A wrapper class for kiteconnect API.
     """
+
     def __init__(self, api_key, api_secret, redirect_url):
         self.api_key = api_key
         self.api_secret = api_secret
@@ -166,7 +167,7 @@ class Kite:
                                             to_date=to_date)
         return data
 
-    def get_latest_technical_indicators(self, *args, instrument_token, interval='minute', normalize=True,
+    def get_latest_technical_indicators(self, *args, instrument_token, interval='minute', normalize=False,
                                         coeff=0.001415926535):
         """
         Fetch latest indicator values
@@ -178,11 +179,12 @@ class Kite:
         :return: Dict of latest indicator values.
         """
         data = self.get_historic_data(instrument_token, interval)
-        indicators = analysis.get_indicators(*args, data=data, normalize=False)
+        indicators = analysis.get_indicators(*args, data=data, normalize=normalize)
         indicator_values = {}
         for indicator, value in indicators.items():
 
             v = value[-1]
+            # Mapping using sigmoid
             if normalize:
                 v = 1 / (1 + np.exp(-coeff * v))
             indicator_values[indicator] = v
