@@ -198,8 +198,10 @@ class TechnicalAnalysis:
         #                                  'close_100_sma', 'close_200_sma', 'volume_delta',
         #                                  'boll_ub', 'boll_lb', 'rsi_6', 'rsi_12', 'rsi_20', 'rsi_50', 'pdi', 'mdi',
         #                                  'adx', normalize=normalize, coeff=coeff)
+        # indicators = self.get_indicators('rsi_6', 'rsi_10', 'pdi', 'mdi', 'adx', 'kdjk', 'kdjd',
+        #                                  'kdjj', 'wr_6', 'wr_10', 'dma', 'vr', normalize=normalize, coeff=coeff)
         indicators = self.get_indicators('rsi_6', 'rsi_10', 'pdi', 'mdi', 'adx', 'kdjk', 'kdjd',
-                                         'kdjj', 'wr_6', 'wr_10', 'dma', 'vr', normalize=normalize, coeff=coeff)
+                                         'kdjj', 'wr_6', 'wr_10', normalize=normalize, coeff=coeff)
 
         indicators['actions'] = swing['actions']
         data_set = pd.DataFrame(data=indicators).iloc[5:]
