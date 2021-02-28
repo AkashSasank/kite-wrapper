@@ -136,12 +136,14 @@ class Kite:
         }
         return secrets
 
-    def get_historic_data(self, instrument_token, interval='day'):
+    def get_historic_data(self, instrument_token, interval='day', sets=1):
         """
         Gets historic data till today
         :param instrument_token: instrument identifier (retrieved from the instruments()) call.
         :param interval: candle interval (hour, minute, day, 5 minute etc.).
-        :return:
+        :param sets: Number of sets of historic data to fetch. Default 1. Used as multiplier for the total time span
+        of data.
+        :return: List of historic data
         """
         try:
             assert interval in self.valid_intervals
@@ -161,10 +163,14 @@ class Kite:
             delta = datetime.timedelta(days=2000)
         else:
             delta = datetime.timedelta(days=1)
-        to_date = datetime.datetime.now()
-        from_date = to_date - delta
-        data = self.session.historical_data(instrument_token, interval=interval, from_date=from_date,
-                                            to_date=to_date)
+        now = datetime.datetime.now()
+        data = []
+        for s in range(sets):
+            to_date = now - s * delta
+            from_date = to_date - delta
+            historical_data = self.session.historical_data(instrument_token, interval=interval, from_date=from_date,
+                                                           to_date=to_date)
+            data.extend(historical_data)
         return data
 
     def get_latest_technical_indicators(self, *args, instrument_token, interval='minute', normalize=False,
@@ -230,6 +236,25 @@ class Kite:
         except Exception as e:
             pass
         return trend
+
+    def get_combined_historic_data_for_multiple_instruments(self, *args, interval='day', sets=1):
+        """
+        Get historic data for multiple instruments
+        :param args: Instrument tokens
+        :param interval: Data interval
+        :param sets: Number of sets of historic data to fetch. Default 1. Used as multiplier for the total time span
+        of data.
+        :return: List of data
+        """
+        historic_data = []
+        for instrument_token in args:
+            try:
+                data = self.get_historic_data(instrument_token, interval=interval, sets=sets)
+                historic_data.extend(data)
+            except Exception as e:
+                continue
+        print(len(historic_data))
+        return historic_data
 
     @property
     def valid_intervals(self):
