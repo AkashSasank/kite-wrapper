@@ -204,29 +204,34 @@ class Kite:
         """
         return [i['tradingsymbol'] for i in self.instruments if i['instrument_token'] == instrument_token][0]
 
-    def get_trend(self, instrument_token, interval='minute'):
+    def get_trend(self, instrument_token, interval='minute', smal=30, smah=60):
         """
         Find market trend of an instrument in a given time frame
         :param instrument_token:
         :param interval:
+        :param smal: Lower simple moving average
+        :param smah:Higher simple moving average
         :return: trend
         """
         # TODO: Improve trend prediction
-        indicators = self.get_latest_technical_indicators('close_60_sma', 'close_30_sma', 'pdi', 'mdi',
+        assert smah > smal
+        sma_low = 'close_' + str(smal) + '_sma'
+        sma_high = 'close_' + str(smah) + '_sma'
+        indicators = self.get_latest_technical_indicators(sma_high, sma_low, 'pdi', 'mdi',
                                                           instrument_token=instrument_token, interval=interval,
                                                           normalize=False)
-        sma30 = indicators['close_30_sma']
-        sma60 = indicators['close_60_sma']
+        smal = indicators[sma_low]
+        smah = indicators[sma_high]
         pdi = indicators['pdi']
         mdi = indicators['mdi']
         trend = 'None'
         try:
             ltp = self.session.ltp([instrument_token]).get(str(instrument_token))['last_price']
-            if ltp > sma30 and ltp > sma60:
+            if ltp > smal and ltp > smah:
                 trend = 'Long'
-            elif ltp < sma30 and ltp < sma60:
+            elif ltp < smal and ltp < smah:
                 trend = 'Short'
-            elif sma30 <= ltp <= sma60 or sma30 >= ltp >= sma60:
+            elif smal <= ltp <= smah or smal >= ltp >= smah:
                 if pdi > mdi:
                     trend = 'Long'
                 if pdi <= mdi:
