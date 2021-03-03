@@ -258,7 +258,6 @@ class Kite:
                 historic_data.extend(data)
             except Exception as e:
                 continue
-        print(len(historic_data))
         return historic_data
 
     @property

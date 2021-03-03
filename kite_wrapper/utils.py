@@ -3,6 +3,7 @@ import csv
 import numpy as np
 from stockstats import StockDataFrame
 import pandas as pd
+import mplfinance as mpf
 
 
 def load_secrets():
@@ -206,3 +207,53 @@ class TechnicalAnalysis:
         indicators['actions'] = swing['actions']
         data_set = pd.DataFrame(data=indicators).iloc[5:]
         data_set.to_csv(self.name + '.csv', index=False)
+
+    @staticmethod
+    def __rotate(input_list, n):
+        return input_list[n:] + input_list[:n]
+
+    def get_best_moving_average(self, max_length=200, min_length=10):
+        """
+        Get the best moving average that act as support/resistance.
+        :param max_length:
+        :param min_length:
+        :return: best moving average
+        """
+        data = self.data
+        data_open = data.get('open')
+        data_close = data.get('close')
+        data_high = data.get('high')
+        data_low = data.get('low')
+        assert len(data_close) > max_length
+
+        errors = []
+        # True: Green, False:Red
+        # Looking for consecutive red or green candles to confirm trend
+        candle_type = [data_close[i] >= data_open[i] for i in range(len(data_close))]
+        next_candle_1 = self.__rotate(candle_type, -1)
+        next_candle_2 = self.__rotate(candle_type, 1)
+        trend = np.logical_and(np.logical_and(candle_type, next_candle_1), next_candle_2)
+
+        for length in range(min_length, max_length + 1, 1):
+            sma = 'close_' + str(length) + '_sma'
+
+            average_close = list(self.get_indicators(sma)[sma])[length - 1:]
+            high = list(data_high)[length - 1:]
+            low = list(data_low)[length - 1:]
+            direction = trend[length - 1:]
+            anchor = [low[index] if value else high[index] for index, value in enumerate(direction)]
+
+            error = [abs(anchor[index] - value) for index, value
+                     in enumerate(average_close)]
+            errors.append(np.median(error))
+        return int(errors.index(max(errors)) + 1)
+
+    def plot_chart(self, type='candle', moving_averages=(100, 30), show_volume=True):
+        """
+        Plot candlestick
+        :param show_volume: plot volume or not
+        :param type: candle, line, renko, ohlc, bars
+        :param moving_averages: tuple. Moving averages tobe plotted
+        :return:
+        """
+        mpf.plot(self.data, type=type, mav=moving_averages, volume=show_volume)
