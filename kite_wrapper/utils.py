@@ -224,7 +224,9 @@ class TechnicalAnalysis:
         data_close = data.get('close')
         data_high = data.get('high')
         data_low = data.get('low')
+
         assert len(data_close) > max_length
+        assert min_length <= max_length
 
         errors = []
         # True: Green, False:Red
@@ -245,15 +247,22 @@ class TechnicalAnalysis:
 
             error = [abs(anchor[index] - value) for index, value
                      in enumerate(average_close)]
-            errors.append(np.median(error))
-        return int(errors.index(max(errors)) + 1)
+            errors.append(int(np.median(error) * 10000))
+        return errors.index(np.median(errors)) + 1
 
-    def plot_chart(self, type='candle', moving_averages=(100, 30), show_volume=True):
+    def plot_chart(self, type='candle', moving_averages: tuple = None, show_volume=True, length=100):
         """
         Plot candlestick
         :param show_volume: plot volume or not
         :param type: candle, line, renko, ohlc, bars
         :param moving_averages: tuple. Moving averages tobe plotted
+        :param length: length of data tobe displayed
         :return:
         """
-        mpf.plot(self.data, type=type, mav=moving_averages, volume=show_volume)
+        max_length = len(self.data)
+        assert max_length > length
+        data = self.data[max_length - length:]
+        if moving_averages:
+            mpf.plot(data, type=type, mav=moving_averages, volume=show_volume)
+        else:
+            mpf.plot(data, type=type, volume=show_volume)
