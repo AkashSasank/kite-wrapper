@@ -181,7 +181,50 @@ class TechnicalAnalysis:
                 pass
         return indicators
 
-    def generate_data_set(self, type='close', ramp=False, swing=True, normalize=False, coeff=0.001415926535):
+    def get_candle_ratios(self, data=None):
+        """
+        Get ratios of candle and wicks
+        :param data:
+        :return:
+        """
+        if data:
+            data = pd.DataFrame(data)
+        else:
+            data = self.data
+        high = data['high']
+        low = data['low']
+        open_ = data['open']
+        close = data['close']
+
+        candle = abs(open_ - close)
+        candle_type = close > open_
+
+        total_candle = high - low
+        upper_wick = [abs(high[index] - close[index]) if i else abs(high[index] - open_[index]) for
+                      index, i in enumerate(candle_type)]
+
+        lower_wick = [abs(low[index] - open_[index]) if i else abs(low[index] - close[index]) for
+                      index, i in enumerate(candle_type)]
+        type_ = [1 if i else 0 for i in list(close > open_)]
+        #     ratios
+        r1 = [(i / (j + 0.00001)) for i, j in zip(candle, total_candle)]
+        r2 = [(i / (j + 0.00001)) for i, j in zip(upper_wick, total_candle)]
+        r3 = [(i / (j + 0.00001)) for i, j in zip(lower_wick, total_candle)]
+        r4 = [(i / (j + 0.00001)) for i, j in zip(upper_wick, lower_wick)]
+        r5 = [(i / (j + 0.00001)) for i, j in zip(upper_wick, candle)]
+        r6 = [(i / (j + 0.00001)) for i, j in zip(lower_wick, candle)]
+        return {
+            'r1': r1,
+            'r2': r2,
+            'r3': r3,
+            'r4': r4,
+            'r5': r5,
+            'r6': r6,
+            't': type_
+        }
+
+    def generate_data_set(self, type='close', ramp=False, swing=True, normalize=False, coeff=0.001415926535,
+                          include_candle_ratios=True):
         """
         Generate dataset from given data and save as csv file.
         :param type: Column to consider. open, high, low or close.
@@ -190,6 +233,7 @@ class TechnicalAnalysis:
         one and swing high and descending in another
         :param normalize: Boolean. Normalize data or not.
         :param coeff: Coefficient for normalization.
+        :param include_candle_ratios: Boolean. Include the different ratios of a candle wicks and body.
         :return:
         """
         swing = self.get_swing_data(stride=1, type=type, ramp=ramp, swing=swing)
@@ -203,6 +247,10 @@ class TechnicalAnalysis:
         #                                  'kdjj', 'wr_6', 'wr_10', 'dma', 'vr', normalize=normalize, coeff=coeff)
         indicators = self.get_indicators('rsi_6', 'rsi_10', 'pdi', 'mdi', 'adx', 'kdjk', 'kdjd',
                                          'kdjj', 'wr_6', 'wr_10', normalize=normalize, coeff=coeff)
+
+        if include_candle_ratios:
+            ratios = self.get_candle_ratios()
+            indicators.update(ratios)
 
         indicators['actions'] = swing['actions']
         data_set = pd.DataFrame(data=indicators).iloc[5:]
@@ -224,7 +272,9 @@ class TechnicalAnalysis:
         data_close = data.get('close')
         data_high = data.get('high')
         data_low = data.get('low')
+
         assert len(data_close) > max_length
+        assert min_length <= max_length
 
         errors = []
         # True: Green, False:Red
@@ -245,15 +295,22 @@ class TechnicalAnalysis:
 
             error = [abs(anchor[index] - value) for index, value
                      in enumerate(average_close)]
-            errors.append(np.median(error))
-        return int(errors.index(max(errors)) + 1)
+            errors.append(int(np.median(error) * 10000))
+        return errors.index(np.median(errors)) + 1
 
-    def plot_chart(self, type='candle', moving_averages=(100, 30), show_volume=True):
+    def plot_chart(self, type='candle', moving_averages: tuple = None, show_volume=True, length=100):
         """
         Plot candlestick
         :param show_volume: plot volume or not
         :param type: candle, line, renko, ohlc, bars
         :param moving_averages: tuple. Moving averages tobe plotted
+        :param length: length of data tobe displayed
         :return:
         """
-        mpf.plot(self.data, type=type, mav=moving_averages, volume=show_volume)
+        max_length = len(self.data)
+        assert max_length > length
+        data = self.data[max_length - length:]
+        if moving_averages:
+            mpf.plot(data, type=type, mav=moving_averages, volume=show_volume)
+        else:
+            mpf.plot(data, type=type, volume=show_volume)
