@@ -276,6 +276,58 @@ class Kite:
             pass
         return trend
 
+    def get_trend_and_input_features(self, *args, instrument_token, interval='minute', smal=30, smah=60):
+        """
+        Find market trend of an instrument in a given time frame
+        :param instrument_token:
+        :param interval:
+        :param smal: Lower simple moving average
+        :param smah:Higher simple moving average
+        :return: trend
+        """
+        # TODO: Improve trend prediction
+        assert smah > smal
+        data = self.get_historic_data(instrument_token, interval)
+        #     Trend Calculation
+        sma_low = 'close_' + str(smal) + '_sma'
+        sma_high = 'close_' + str(smah) + '_sma'
+
+        indicators = analysis.get_indicators(sma_high, sma_low, 'pdi', 'mdi', data=data)
+        indicator_values = {}
+        for indicator, value in indicators.items():
+            indicator_values[indicator] = value[-1]
+
+        smal = indicators[sma_low]
+        smah = indicators[sma_high]
+        pdi = indicators['pdi']
+        mdi = indicators['mdi']
+        trend = 'None'
+        try:
+            ltp = self.session.ltp([instrument_token]).get(str(instrument_token))['last_price']
+            if ltp > smal and ltp > smah:
+                trend = 'Long'
+            elif ltp < smal and ltp < smah:
+                trend = 'Short'
+            elif smal <= ltp <= smah or smal >= ltp >= smah:
+                if pdi > mdi:
+                    trend = 'Long'
+                if pdi <= mdi:
+                    trend = 'Short'
+            else:
+                trend = 'None'
+        except Exception as e:
+            pass
+        #   Input feature calculation
+
+        indicators = analysis.get_indicators(*args, data=data)
+        ratios = analysis.get_candle_ratios(data=data)
+        indicators.update(ratios)
+        indicator_values = {}
+        for indicator, value in indicators.items():
+            indicator_values[indicator] = value[-1]
+
+        return trend, indicator_values
+
     def get_combined_historic_data_for_multiple_instruments(self, *args, interval='day', sets=1):
         """
         Get historic data for multiple instruments
