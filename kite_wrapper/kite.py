@@ -297,10 +297,10 @@ class Kite:
         for indicator, value in indicators.items():
             indicator_values[indicator] = value[-1]
 
-        smal = indicators[sma_low]
-        smah = indicators[sma_high]
-        pdi = indicators['pdi']
-        mdi = indicators['mdi']
+        smal = indicator_values[sma_low]
+        smah = indicator_values[sma_high]
+        pdi = indicator_values['pdi']
+        mdi = indicator_values['mdi']
         trend = 'None'
         try:
             ltp = self.session.ltp([instrument_token]).get(str(instrument_token))['last_price']
