@@ -19,4 +19,4 @@ setup(name='kite-wrapper',
       ],
       python_requires='>=3.6',
       install_requires=['kiteconnect', 'selenium==3.141.0', 'numpy==1.20.1', 'pandas==1.2.2', 'stockstats==0.3.2',
-                        'mplfinance==0.12.7a7'], )
+                        'mplfinance==0.12.7a7', 'seaborn==0.11.1'], )

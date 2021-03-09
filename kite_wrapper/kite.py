@@ -196,6 +196,40 @@ class Kite:
             indicator_values[indicator] = v
         return indicator_values
 
+    def get_latest_candle_ratios(self, instrument_token, interval='minute'):
+        """
+        Get latest candle ratios.
+        :param instrument_token:
+        :param interval:
+        :return:
+        """
+        data = self.get_historic_data(instrument_token, interval)
+        ratios = analysis.get_candle_ratios(data=data)
+        indicator_values = {}
+        for ratio, value in ratios.items():
+            v = value[-1]
+            indicator_values[ratio] = v
+        return indicator_values
+
+    def get_input_features(self, *args, instrument_token, interval='minute'):
+        """
+        Get input features to feed ML model
+        :param args: indicator strings ==> https://pypi.org/project/stockstats/
+        :param instrument_token: instrument identifier (retrieved from the instruments()) call.
+        :param interval: candle interval (hour, minute, day, 5 minute etc.).
+        :return: Dict of latest indicator values.
+        """
+        data = self.get_historic_data(instrument_token, interval)
+        indicators = analysis.get_indicators(*args, data=data)
+        ratios = analysis.get_candle_ratios(data=data)
+        indicators.update(ratios)
+        indicator_values = {}
+        for indicator, value in indicators.items():
+            v = value[-1]
+            indicator_values[indicator] = v
+
+        return indicator_values
+
     def get_trading_symbol(self, instrument_token):
         """
         Get trading symbol for a given instrument token.

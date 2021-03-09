@@ -4,6 +4,8 @@ import numpy as np
 from stockstats import StockDataFrame
 import pandas as pd
 import mplfinance as mpf
+import seaborn as sn
+import matplotlib.pyplot as plt
 
 
 def load_secrets():
@@ -314,3 +316,18 @@ class TechnicalAnalysis:
             mpf.plot(data, type=type, mav=moving_averages, volume=show_volume)
         else:
             mpf.plot(data, type=type, volume=show_volume)
+
+    def analyse_dataset(self):
+        """
+        Plot correlation matrix from dataset
+        :return:
+        """
+        filename = self.name + '.csv'
+        try:
+            dataset = pd.read_csv(filename)
+            correlation = dataset.corr()
+            sn.heatmap(correlation, annot=True)
+            plt.show()
+
+        except Exception as e:
+            print(e)
