@@ -316,7 +316,7 @@ class Kite:
             else:
                 trend = 'None'
         except Exception as e:
-            pass
+            trend = 'None'
         #   Input feature calculation
 
         indicators = analysis.get_indicators(*args, data=data)
@@ -326,7 +326,7 @@ class Kite:
         for indicator, value in indicators.items():
             indicator_values[indicator] = value[-1]
 
-        return trend, indicator_values
+        return trend, indicator_values, ltp
 
     def get_combined_historic_data_for_multiple_instruments(self, *args, interval='day', sets=1):
         """
