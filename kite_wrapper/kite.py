@@ -307,8 +307,8 @@ class Kite:
 
         smal = indicator_values.pop(sma_low)
         smah = indicator_values.pop(sma_high)
-        pdi = indicator_values.pop('pdi')
-        mdi = indicator_values.pop('mdi')
+        pdi = indicator_values['pdi']
+        mdi = indicator_values['mdi']
         trend = 'None'
         # Find trend
         try:
