@@ -293,8 +293,10 @@ class Kite:
         """
         # TODO: Improve trend prediction
         assert smah > smal
+        # calculate delta for historic data
+        delta = self.__get_delta(smah, interval=interval)
         # Get historic data
-        data = self.get_historic_data(instrument_token, interval, delta=10)
+        data = self.get_historic_data(instrument_token, interval, delta=delta)
         #     Trend Calculation
         sma_low = 'close_' + str(smal) + '_sma'
         sma_high = 'close_' + str(smah) + '_sma'
@@ -334,6 +336,88 @@ class Kite:
             indicator_values[r] = value[-1]
 
         return trend, indicator_values, ltp
+
+    @staticmethod
+    def __get_delta(min_length, interval, trading_hours=5):
+        num_min_candles_per_day = trading_hours * 60
+        if interval == 'minute':
+            num_candles = num_min_candles_per_day
+            if min_length > num_candles:
+                return np.ceil(min_length / num_candles)
+            else:
+                return 1
+        if interval == '2minute':
+            num_candles = num_min_candles_per_day // 2
+            if min_length > num_candles:
+                return np.ceil(min_length / num_candles)
+            else:
+                return 1
+        if interval == '3minute':
+            num_candles = num_min_candles_per_day // 3
+            if min_length > num_candles:
+                return np.ceil(min_length / num_candles)
+            else:
+                return 1
+        if interval == '4minute':
+            num_candles = num_min_candles_per_day // 4
+            if min_length > num_candles:
+                return np.ceil(min_length / num_candles)
+            else:
+                return 1
+        if interval == '5minute':
+            num_candles = num_min_candles_per_day // 5
+            if min_length > num_candles:
+                return np.ceil(min_length / num_candles)
+            else:
+                return 2
+        if interval == '10minute':
+            num_candles = num_min_candles_per_day // 10
+            if min_length > num_candles:
+                return np.ceil(min_length / num_candles)
+            else:
+                return 2
+        if interval == '15minute':
+            num_candles = num_min_candles_per_day // 15
+            if min_length > num_candles:
+                return np.ceil(min_length / num_candles)
+            else:
+                return 2
+        if interval == '30minute':
+            num_candles = num_min_candles_per_day // 30
+            if min_length > num_candles:
+                return np.ceil(min_length / num_candles)
+            else:
+                return 3
+        if interval == 'hour':
+            num_candles = num_min_candles_per_day // 60
+            if min_length > num_candles:
+                return np.ceil(min_length / num_candles)
+            else:
+                return 5
+        if interval == '2hour':
+            num_candles = num_min_candles_per_day // 120
+            if min_length > num_candles:
+                return np.ceil(min_length / num_candles)
+            else:
+                return 8
+        if interval == '3hour':
+            num_candles = num_min_candles_per_day // 180
+            if min_length > num_candles:
+                return np.ceil(min_length / num_candles)
+            else:
+                return 10
+        if interval == 'day':
+            num_candles = 1
+            if min_length > num_candles:
+                return np.ceil(min_length / num_candles)
+            else:
+                return 25
+        if interval == 'week':
+            num_candles = 0.2
+            if min_length > num_candles:
+                return np.ceil(min_length / num_candles)
+            else:
+                return 50
 
     def get_combined_historic_data_for_multiple_instruments(self, *args, interval='day', sets=1):
         """
