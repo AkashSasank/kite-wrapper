@@ -136,13 +136,14 @@ class Kite:
         }
         return secrets
 
-    def get_historic_data(self, instrument_token, interval='day', sets=1):
+    def get_historic_data(self, instrument_token, interval='day', sets=1, delta=None):
         """
         Gets historic data till today
         :param instrument_token: instrument identifier (retrieved from the instruments()) call.
         :param interval: candle interval (hour, minute, day, 5 minute etc.).
         :param sets: Number of sets of historic data to fetch. Default 1. Used as multiplier for the total time span
         of data.
+        :param delta: Number of days for which data need to be fetched.
         :return: List of historic data
         """
         try:
@@ -151,18 +152,23 @@ class Kite:
             print('Enter a valid interval.')
             print(self.valid_intervals)
             return
-        if interval in ['minute', '2minute']:
-            delta = datetime.timedelta(days=60)
-        elif interval in ['3minute', '4minute', '5minute', '10minute']:
-            delta = datetime.timedelta(days=100)
-        elif interval in ['15minute', '30minute']:
-            delta = datetime.timedelta(days=200)
-        elif interval in ['hour', '2hour', '3hour']:
-            delta = datetime.timedelta(days=400)
-        elif interval in ['day', 'week']:
-            delta = datetime.timedelta(days=2000)
+        if delta:
+            assert delta > 0
+            assert delta < 60
+            delta = datetime.timedelta(days=delta)
         else:
-            delta = datetime.timedelta(days=1)
+            if interval in ['minute', '2minute']:
+                delta = datetime.timedelta(days=60)
+            elif interval in ['3minute', '4minute', '5minute', '10minute']:
+                delta = datetime.timedelta(days=100)
+            elif interval in ['15minute', '30minute']:
+                delta = datetime.timedelta(days=200)
+            elif interval in ['hour', '2hour', '3hour']:
+                delta = datetime.timedelta(days=400)
+            elif interval in ['day', 'week']:
+                delta = datetime.timedelta(days=2000)
+            else:
+                delta = datetime.timedelta(days=1)
         now = datetime.datetime.now()
         data = []
         for s in range(sets):
@@ -287,21 +293,24 @@ class Kite:
         """
         # TODO: Improve trend prediction
         assert smah > smal
-        data = self.get_historic_data(instrument_token, interval)
+        # Get historic data
+        data = self.get_historic_data(instrument_token, interval, delta=10)
         #     Trend Calculation
         sma_low = 'close_' + str(smal) + '_sma'
         sma_high = 'close_' + str(smah) + '_sma'
-
-        indicators = analysis.get_indicators(sma_high, sma_low, 'pdi', 'mdi', data=data)
+        # get indicators
+        indicators = analysis.get_indicators(*args, sma_high, sma_low, 'pdi', 'mdi', data=data)
         indicator_values = {}
+        # Get the latest values
         for indicator, value in indicators.items():
             indicator_values[indicator] = value[-1]
 
-        smal = indicator_values[sma_low]
-        smah = indicator_values[sma_high]
-        pdi = indicator_values['pdi']
-        mdi = indicator_values['mdi']
+        smal = indicator_values.pop(sma_low)
+        smah = indicator_values.pop(sma_high)
+        pdi = indicator_values.pop('pdi')
+        mdi = indicator_values.pop('mdi')
         trend = 'None'
+        # Find trend
         try:
             ltp = self.session.ltp([instrument_token]).get(str(instrument_token))['last_price']
             if ltp > smal and ltp > smah:
@@ -317,14 +326,12 @@ class Kite:
                 trend = 'None'
         except Exception as e:
             trend = 'None'
+            return
         #   Input feature calculation
-
-        indicators = analysis.get_indicators(*args, data=data)
+        # Get candle ratios
         ratios = analysis.get_candle_ratios(data=data)
-        indicators.update(ratios)
-        indicator_values = {}
-        for indicator, value in indicators.items():
-            indicator_values[indicator] = value[-1]
+        for r, value in ratios.items():
+            indicator_values[r] = value[-1]
 
         return trend, indicator_values, ltp
 
