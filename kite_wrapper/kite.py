@@ -244,64 +244,66 @@ class Kite:
         """
         return [i['tradingsymbol'] for i in self.instruments if i['instrument_token'] == instrument_token][0]
 
-    def get_trend(self, instrument_token, interval='minute', smal=30, smah=60):
+    def get_trend(self, instrument_token, interval='minute', smal=30, smah=60, longsma=120):
         """
         Find market trend of an instrument in a given time frame
         :param instrument_token:
         :param interval:
         :param smal: Lower simple moving average
         :param smah:Higher simple moving average
+        :param longsma:long term sma to determine long term trend
         :return: trend
         """
         # TODO: Improve trend prediction
-        assert smah > smal
+        assert longsma > smah > smal
         sma_low = 'close_' + str(smal) + '_sma'
         sma_high = 'close_' + str(smah) + '_sma'
-        indicators = self.get_latest_technical_indicators(sma_high, sma_low, 'pdi', 'mdi',
+        sma_long = 'close_' + str(longsma) + '_sma'
+        indicators = self.get_latest_technical_indicators(sma_high, sma_low, sma_long, 'pdi', 'mdi',
                                                           instrument_token=instrument_token, interval=interval,
                                                           normalize=False)
         smal = indicators[sma_low]
         smah = indicators[sma_high]
+        longsma = indicators[sma_long]
         pdi = indicators['pdi']
         mdi = indicators['mdi']
         trend = 'None'
         try:
             ltp = self.session.ltp([instrument_token]).get(str(instrument_token))['last_price']
-            if ltp > smal and ltp > smah:
-                trend = 'Long'
-            elif ltp < smal and ltp < smah:
-                trend = 'Short'
-            elif smal <= ltp <= smah or smal >= ltp >= smah:
-                if pdi > mdi:
+            if ltp > longsma:
+                if ltp > smal > smah and pdi > mdi:
                     trend = 'Long'
-                if pdi <= mdi:
+
+            if ltp < longsma:
+                if ltp < smal < smah and pdi < mdi:
                     trend = 'Short'
-            else:
-                trend = 'None'
+
         except Exception as e:
             pass
         return trend
 
-    def get_trend_and_input_features(self, *args, instrument_token, interval='minute', smal=30, smah=60):
+    def get_trend_and_input_features(self, *args, instrument_token, interval='minute', smal=30, smah=60, longsma=120):
         """
         Find market trend of an instrument in a given time frame
         :param instrument_token:
         :param interval:
         :param smal: Lower simple moving average
         :param smah:Higher simple moving average
+        :param longsma: long term sma for trend
         :return: trend
         """
         # TODO: Improve trend prediction
-        assert smah > smal
+        assert longsma > smah > smal
         # calculate delta for historic data
-        delta = self.__get_delta(smah, interval=interval)
+        delta = self.__get_delta(longsma, interval=interval)
         # Get historic data
         data = self.get_historic_data(instrument_token, interval, delta=delta)
         #     Trend Calculation
         sma_low = 'close_' + str(smal) + '_sma'
         sma_high = 'close_' + str(smah) + '_sma'
+        sma_long = 'close_' + str(longsma) + '_sma'
         # get indicators
-        indicators = analysis.get_indicators(*args, sma_high, sma_low, 'pdi', 'mdi', data=data)
+        indicators = analysis.get_indicators(*args, sma_high, sma_low, sma_long, 'pdi', 'mdi', data=data)
         indicator_values = {}
         # Get the latest values
         for indicator, value in indicators.items():
@@ -309,26 +311,24 @@ class Kite:
 
         smal = indicator_values.pop(sma_low)
         smah = indicator_values.pop(sma_high)
+        longsma = indicator_values.pop(sma_long)
         pdi = indicator_values['pdi']
         mdi = indicator_values['mdi']
+
         trend = 'None'
         # Find trend
         try:
             ltp = self.session.ltp([instrument_token]).get(str(instrument_token))['last_price']
-            if ltp > smal and ltp > smah:
-                trend = 'Long'
-            elif ltp < smal and ltp < smah:
-                trend = 'Short'
-            elif smal <= ltp <= smah or smal >= ltp >= smah:
-                if pdi > mdi:
+            if ltp > longsma:
+                if ltp > smal > smah and pdi > mdi:
                     trend = 'Long'
-                if pdi <= mdi:
+
+            if ltp < longsma:
+                if ltp < smal < smah and pdi < mdi:
                     trend = 'Short'
-            else:
-                trend = 'None'
+
         except Exception as e:
-            trend = 'None'
-            return
+            pass
         #   Input feature calculation
         # Get candle ratios
         ratios = analysis.get_candle_ratios(data=data)
