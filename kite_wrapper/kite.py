@@ -10,11 +10,13 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
-from .utils import TechnicalAnalysis
+# from .utils import TechnicalAnalysis
+from .v2 import TechnicalAnalysisV2
 
 logging.basicConfig(level=logging.DEBUG)
 
-analysis = TechnicalAnalysis()
+# analysis = TechnicalAnalysis()
+analysis = TechnicalAnalysisV2()
 
 
 class Kite:
@@ -191,7 +193,7 @@ class Kite:
         :return: Dict of latest indicator values.
         """
         data = self.get_historic_data(instrument_token, interval)
-        indicators = analysis.get_indicators(*args, data=data, normalize=normalize)
+        indicators = analysis.get_indicators(*args, data=data)
         indicator_values = {}
         for indicator, value in indicators.items():
 
@@ -259,7 +261,7 @@ class Kite:
         sma_low = 'close_' + str(smal) + '_sma'
         sma_high = 'close_' + str(smah) + '_sma'
         sma_long = 'close_' + str(longsma) + '_sma'
-        indicators = self.get_latest_technical_indicators(sma_high, sma_low, sma_long, 'pdi', 'mdi',
+        indicators = self.get_latest_technical_indicators(sma_high, sma_low, sma_long,
                                                           instrument_token=instrument_token, interval=interval,
                                                           normalize=False)
         smal = indicators[sma_low]
@@ -303,7 +305,7 @@ class Kite:
         sma_high = 'close_' + str(smah) + '_sma'
         sma_long = 'close_' + str(longsma) + '_sma'
         # get indicators
-        indicators = analysis.get_indicators(*args, sma_high, sma_low, sma_long, 'pdi', 'mdi', data=data)
+        indicators = analysis.get_indicators(*args, sma_high, sma_low, sma_long, data=data)
         indicator_values = {}
         # Get the latest values
         for indicator, value in indicators.items():
