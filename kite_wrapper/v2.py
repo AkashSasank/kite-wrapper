@@ -175,7 +175,7 @@ class TechnicalAnalysisV2:
         for arg in args:
             try:
                 if 'vwap' == arg:
-                    vwap = self.get_vwap()
+                    vwap = self.get_vwap(data)
                     indicators['vwap'] = vwap
                     continue
                 if to_percentage:
@@ -195,10 +195,6 @@ class TechnicalAnalysisV2:
         :param autoscale: scale vwap with price to get a smaller value
         :return:
         """
-        if data:
-            data = pd.DataFrame(data)
-        else:
-            data = self.data
         close = data['close']
         volume = data['volume']
         vwap = (np.cumsum(volume * close) / np.cumsum(volume))
