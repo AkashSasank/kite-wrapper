@@ -1,3 +1,4 @@
+import concurrent.futures as concurrent
 import logging
 from kiteconnect import KiteConnect
 import requests
@@ -9,7 +10,7 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-
+import time
 # from .utils import TechnicalAnalysis
 from .v2 import TechnicalAnalysisV2
 
@@ -298,19 +299,23 @@ class Kite:
         assert longsma > smah > smal
         # calculate delta for historic data
         delta = self.__get_delta(longsma, interval=interval)
-        # Get historic data
-        data = self.get_historic_data(instrument_token, interval, delta=delta)
         #     Trend Calculation
         sma_low = 'close_' + str(smal) + '_sma'
         sma_high = 'close_' + str(smah) + '_sma'
         sma_long = 'close_' + str(longsma) + '_sma'
         # TODO: Multi threading
-        # get indicators
-        indicators = analysis.get_indicators(*args, sma_high, sma_low, sma_long, data=data)
-        # get ltp
-        ltp = self.session.ltp([instrument_token]).get(str(instrument_token))['last_price']
-        # get ratios
-        ratios = analysis.get_candle_ratios(data=data)
+
+        with concurrent.ThreadPoolExecutor() as E:
+            t0 = E.submit(self.get_historic_data, instrument_token, interval, delta=delta)
+            t1 = E.submit(self.session.ltp, [instrument_token])
+            concurrent.wait([t0, t1, ])
+            ltp = t1.result().get(str(instrument_token))['last_price']
+            data = t0.result()
+            t2 = E.submit(analysis.get_candle_ratios, data, )
+            t3 = E.submit(analysis.get_indicators, *args, sma_high, sma_low, sma_long, data=data)
+            ratios = t2.result()
+            indicators = t3.result()
+            concurrent.wait([t2, t3, ])
 
         indicator_values = {}
         # Get the latest values
