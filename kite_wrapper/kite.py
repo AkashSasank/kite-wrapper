@@ -304,40 +304,49 @@ class Kite:
         sma_low = 'close_' + str(smal) + '_sma'
         sma_high = 'close_' + str(smah) + '_sma'
         sma_long = 'close_' + str(longsma) + '_sma'
+        # TODO: Multi threading
         # get indicators
         indicators = analysis.get_indicators(*args, sma_high, sma_low, sma_long, data=data)
+        # get ltp
+        ltp = self.session.ltp([instrument_token]).get(str(instrument_token))['last_price']
+        # get ratios
+        ratios = analysis.get_candle_ratios(data=data)
+
         indicator_values = {}
         # Get the latest values
         for indicator, value in indicators.items():
             indicator_values[indicator] = value[-1]
-
-        smal = indicator_values.pop(sma_low)
-        smah = indicator_values.pop(sma_high)
-        longsma = indicator_values.pop(sma_long)
+        #   Input feature calculation
+        # Get candle ratios
+        for r, value in ratios.items():
+            indicator_values[r] = value[-1]
+        # convert from percentage to actual value
+        smal = indicator_values.pop(sma_low) * 100
+        smah = indicator_values.pop(sma_high) * 100
+        longsma = indicator_values.pop(sma_long) * 100
         pdi = indicator_values['pdi']
         mdi = indicator_values['mdi']
 
         trend = 'None'
         # Find trend
-        try:
-            ltp = self.session.ltp([instrument_token]).get(str(instrument_token))['last_price']
-            if ltp > longsma:
-                if ltp > smal > smah and pdi > mdi:
-                    trend = 'Long'
+        if ltp > longsma:
+            if ltp > smal > smah and pdi > mdi:
+                trend = 'Long'
 
-            if ltp < longsma:
-                if ltp < smal < smah and pdi < mdi:
-                    trend = 'Short'
+        if ltp < longsma:
+            if ltp < smal < smah and pdi < mdi:
+                trend = 'Short'
 
-        except Exception as e:
-            pass
-        #   Input feature calculation
-        # Get candle ratios
-        ratios = analysis.get_candle_ratios(data=data)
-        for r, value in ratios.items():
-            indicator_values[r] = value[-1]
+        response = {
+            'trend': trend,
+            'indicator_values': indicator_values,
+            'ltp': ltp,
+            'smal': smal,
+            'smah': smah,
+            'longsma': longsma
+        }
 
-        return trend, indicator_values, ltp
+        return response
 
     @staticmethod
     def __get_delta(min_length, interval, trading_hours=5):
