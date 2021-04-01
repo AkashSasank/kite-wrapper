@@ -199,8 +199,29 @@ class TechnicalAnalysisV2:
         volume = data['volume']
         vwap = (np.cumsum(volume * close) / np.cumsum(volume))
         if autoscale:
-            vwap = vwap / close
+            vwap = vwap / max(vwap)
         return vwap
+
+    def get_vwap_gradient(self, data=None, delta=100):
+        """
+        Get slope of vwap
+        :param data:
+        :param delta:
+        :return:
+        """
+        if data:
+            data = pd.DataFrame(data)
+        else:
+            data = self.data
+
+        vwap = list(self.get_vwap(data, autoscale=True))
+        r = []
+        for i in range(1, delta):
+            rotated = self.__rotate(vwap, -i)
+            v = [(i - j) for (i, j) in zip(vwap, rotated)]
+            r.append(v)
+        mean = np.mean(r, 0)
+        return mean
 
     def get_candle_ratios(self, data=None, to_percentage=True):
         """
