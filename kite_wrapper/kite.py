@@ -313,9 +313,13 @@ class Kite:
             data = t0.result()
             t2 = E.submit(analysis.get_candle_ratios, data, )
             t3 = E.submit(analysis.get_indicators, *args, sma_high, sma_low, sma_long, data=data)
+            t4 = E.submit(analysis.get_vwap_gradient, data=data, delta=longsma)
             ratios = t2.result()
             indicators = t3.result()
-            concurrent.wait([t2, t3, ])
+            vwap_gradient = t4.result()
+            concurrent.wait([t2, t3, t4])
+        #     absolute slope of vwap
+        v_grad = abs(vwap_gradient[-1])
 
         indicator_values = {}
         # Get the latest values
@@ -334,13 +338,14 @@ class Kite:
 
         trend = 'None'
         # Find trend
-        if ltp > longsma:
-            if ltp > smal > smah and pdi > mdi:
-                trend = 'Long'
+        if v_grad > 0.001:
+            if ltp > longsma:
+                if ltp > smal > smah and pdi > mdi:
+                    trend = 'Long'
 
-        if ltp < longsma:
-            if ltp < smal < smah and pdi < mdi:
-                trend = 'Short'
+            if ltp < longsma:
+                if ltp < smal < smah and pdi < mdi:
+                    trend = 'Short'
 
         response = {
             'trend': trend,
@@ -348,7 +353,8 @@ class Kite:
             'ltp': ltp,
             'smal': smal,
             'smah': smah,
-            'longsma': longsma
+            'longsma': longsma,
+            'vgrad': v_grad,
         }
 
         return response
