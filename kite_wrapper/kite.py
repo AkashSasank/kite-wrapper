@@ -361,77 +361,81 @@ class Kite:
 
     @staticmethod
     def __get_delta(min_length, interval, trading_hours=5):
+        today = datetime.datetime.today().strftime('%A')
+        D = 0
+        if today in ['Saturday', 'Sunday', 'Monday']:
+            D = 3
         num_min_candles_per_day = trading_hours * 60
         if interval == 'minute':
             num_candles = num_min_candles_per_day
             if min_length > num_candles:
-                return np.ceil(min_length / num_candles)
+                return np.ceil(min_length / num_candles) + D
             else:
-                return 1
+                return 1 + D
         if interval == '2minute':
             num_candles = num_min_candles_per_day // 2
             if min_length > num_candles:
-                return np.ceil(min_length / num_candles)
+                return np.ceil(min_length / num_candles) + D
             else:
-                return 1
+                return 1 + D
         if interval == '3minute':
             num_candles = num_min_candles_per_day // 3
             if min_length > num_candles:
-                return np.ceil(min_length / num_candles)
+                return np.ceil(min_length / num_candles) + D
             else:
-                return 1
+                return 1 + D
         if interval == '4minute':
             num_candles = num_min_candles_per_day // 4
             if min_length > num_candles:
-                return np.ceil(min_length / num_candles)
+                return np.ceil(min_length / num_candles) + D
             else:
-                return 1
+                return 1 + D
         if interval == '5minute':
             num_candles = num_min_candles_per_day // 5
             if min_length > num_candles:
-                return np.ceil(min_length / num_candles)
+                return np.ceil(min_length / num_candles) + D
             else:
-                return 2
+                return 2 + D
         if interval == '10minute':
             num_candles = num_min_candles_per_day // 10
             if min_length > num_candles:
-                return np.ceil(min_length / num_candles)
+                return np.ceil(min_length / num_candles) + D
             else:
-                return 2
+                return 2 + D
         if interval == '15minute':
             num_candles = num_min_candles_per_day // 15
             if min_length > num_candles:
-                return np.ceil(min_length / num_candles)
+                return np.ceil(min_length / num_candles) + D
             else:
-                return 2
+                return 2 + D
         if interval == '30minute':
             num_candles = num_min_candles_per_day // 30
             if min_length > num_candles:
-                return np.ceil(min_length / num_candles)
+                return np.ceil(min_length / num_candles) + D
             else:
-                return 3
+                return 3 + D
         if interval == 'hour':
             num_candles = num_min_candles_per_day // 60
             if min_length > num_candles:
-                return np.ceil(min_length / num_candles)
+                return np.ceil(min_length / num_candles) + D
             else:
                 return 5
         if interval == '2hour':
             num_candles = num_min_candles_per_day // 120
             if min_length > num_candles:
-                return np.ceil(min_length / num_candles)
+                return np.ceil(min_length / num_candles) + D
             else:
                 return 8
         if interval == '3hour':
             num_candles = num_min_candles_per_day // 180
             if min_length > num_candles:
-                return np.ceil(min_length / num_candles)
+                return np.ceil(min_length / num_candles) + D
             else:
                 return 10
         if interval == 'day':
             num_candles = 1
             if min_length > num_candles:
-                return np.ceil(min_length / num_candles)
+                return np.ceil(min_length / num_candles) + D
             else:
                 return 25
         if interval == 'week':
