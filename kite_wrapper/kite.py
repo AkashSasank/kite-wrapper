@@ -332,7 +332,7 @@ class Kite:
         longsma = indicator_values.pop(sma_long) * 100
         pdi = indicator_values['pdi']
         mdi = indicator_values['mdi']
-        adx = indicator_values['adx']
+        adx = indicator_values['adx'] * 100
 
         trend = 'None'
         # Find trend
