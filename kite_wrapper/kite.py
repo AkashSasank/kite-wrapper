@@ -336,7 +336,7 @@ class Kite:
 
         trend = 'None'
         # Find trend
-        if adx >= 20:
+        if adx >= 25:
             if ltp > longsma:
                 if ltp > smal > smah and pdi > mdi:
                     trend = 'Long'
